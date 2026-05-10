@@ -3,8 +3,8 @@
   <p><strong>Create beautiful, high-resolution before & after comparisons.</strong></p>
   
   <p>
-    <a href="https://github.com/andrear9/Reflecto/releases"><img src="https://img.shields.io/github/v/release/andrear9/Reflecto?style=flat-square&color=6366f1" alt="Release"></a>
-    <a href="https://github.com/andrear9/Reflecto/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&color=6366f1" alt="License"></a>
+    <a href="https://github.com/andrear9/reflecto/releases"><img src="https://img.shields.io/github/v/release/andrear9/reflecto?style=flat-square&color=6366f1" alt="Release"></a>
+    <a href="https://github.com/andrear9/reflecto/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&color=6366f1" alt="License"></a>
     <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-blue.svg?style=flat-square&logo=react&color=6366f1" alt="React"></a>
     <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-6-blue.svg?style=flat-square&logo=vite&color=6366f1" alt="Vite"></a>
     <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind-v4-blue.svg?style=flat-square&logo=tailwindcss&color=6366f1" alt="Tailwind CSS"></a>
@@ -23,7 +23,7 @@ Built with performance in mind, Reflecto uses a highly optimized Canvas renderin
 <br>
 
 <div align="center">
-  <img src="./public/Screenshot.png" alt="Reflecto Interface Preview" style="border-radius: 12px; border: 1px solid #27272a;" />
+  <img src="./public/Screenshot.png" alt="reflecto Interface Preview" style="border-radius: 12px; border: 1px solid #27272a;" />
   <p><em>Turn raw assets into engaging, social-ready comparisons in seconds.</em></p>
 </div>
 
@@ -64,8 +64,8 @@ Reflecto is built to be fast, typed, and dependency-light.
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/yourusername/Reflecto.git
-cd Reflecto
+git clone https://github.com/yourusername/reflecto.git
+cd reflecto
 ```
 
 **2. Install dependencies**
@@ -170,5 +170,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 <div align="center">
-  <p>Crafted & maintained with passion. <br> <a href="https://github.com/andrear9/Reflecto">Leave a star</a> if you find this tool helpful.</p>
+  <p>Crafted & maintained with passion. <br> <a href="https://github.com/andrear9/reflecto">Leave a star</a> if you find this tool helpful.</p>
 </div>
