@@ -1126,8 +1126,8 @@ function Toggle({ checked, onChange }: { checked: boolean, onChange: (v: boolean
   );
 }
 
-function GridSelector({ value, onChange }: { value: { x: string, y: string }, onChange: (v: any) => void }) {
-  const cells = [
+function GridSelector({ value, onChange }: { value: LabelPos, onChange: (v: LabelPos) => void }) {
+  const cells: LabelPos[] = [
     { x: 'left', y: 'top' }, { x: 'center', y: 'top' }, { x: 'right', y: 'top' },
     { x: 'left', y: 'center' }, { x: 'center', y: 'center' }, { x: 'right', y: 'center' },
     { x: 'left', y: 'bottom' }, { x: 'center', y: 'bottom' }, { x: 'right', y: 'bottom' }
