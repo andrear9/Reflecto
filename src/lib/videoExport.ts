@@ -1,10 +1,6 @@
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import * as htmlToImage from 'html-to-image';
-
-// Easing function (in-out sine)
-function easeInOutSine(x: number): number {
-  return -(Math.cos(Math.PI * x) - 1) / 2;
-}
+import { easeInOutSine } from './utils';
 
 export async function exportVideoTask(
   container: HTMLDivElement,
