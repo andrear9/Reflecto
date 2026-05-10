@@ -159,6 +159,14 @@ export async function exportVideoTask(
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
+  // Pre-calculate slider UI dimensions
+  const uiScale = width / 1000;
+  const handleThickness = Math.max(2, 2 * uiScale);
+  const radius = Math.max(16, 20 * uiScale);
+  const shadowBlur = 8 * uiScale;
+  const shadowOffsetY = 2 * uiScale;
+  const arrowSize = radius * 0.4;
+
   for (let i = 0; i < totalFrames; i++) {
     if (encoderError) throw encoderError;
     if (encoder.state !== 'configured') {
@@ -183,19 +191,16 @@ export async function exportVideoTask(
 
       // Draw the Slider Handle
       if (p > 0 && p < 1) {
-        const uiScale = width / 1000;
         const handleX = width * p;
         
         ctx.fillStyle = 'white';
         // Vertical line
-        const handleThickness = Math.max(2, 2 * uiScale);
         ctx.fillRect(handleX - handleThickness / 2, 0, handleThickness, height);
         
         // Handle circle
-        const radius = Math.max(16, 20 * uiScale); 
         ctx.shadowColor = 'rgba(0,0,0,0.4)';
-        ctx.shadowBlur = 8 * uiScale;
-        ctx.shadowOffsetY = 2 * uiScale;
+        ctx.shadowBlur = shadowBlur;
+        ctx.shadowOffsetY = shadowOffsetY;
         ctx.beginPath();
         ctx.arc(handleX, height / 2, radius, 0, Math.PI * 2);
         ctx.fillStyle = 'white';
@@ -203,7 +208,6 @@ export async function exportVideoTask(
         ctx.shadowColor = 'transparent'; // reset
         
         // Handle arrows (simple dark gray)
-        const arrowSize = radius * 0.4;
         ctx.fillStyle = '#4a5568';
         ctx.beginPath();
         ctx.moveTo(handleX - arrowSize, height / 2);
