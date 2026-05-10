@@ -1,6 +1,5 @@
 <div align="center">
   <img src="./public/reflecto-logo.png" alt="Reflecto Logo" height="100" />
-  <h1 style="margin: 0; padding-top: 10px;">Reflecto.</h1>
   <p><strong>Create beautiful, high-resolution before & after comparisons.</strong></p>
   
   <p>
