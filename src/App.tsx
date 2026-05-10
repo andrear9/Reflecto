@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback } from 'react';
 import { 
-  Sun, Moon, Upload, Image as ImageIcon, Settings, Type, Download, 
+  Sun, Moon, Upload, Image as ImageIcon, Settings, Download,
   Copy, Trash2, LayoutTemplate, Layers, SplitSquareHorizontal, 
   Maximize, MoreHorizontal, SlidersHorizontal, ImageOff, FlipHorizontal,
   ZoomIn, ZoomOut, Monitor, ArrowLeftRight, Video, Loader2
