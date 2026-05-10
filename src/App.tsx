@@ -185,16 +185,9 @@ export default function App() {
     
     // Calculate relative position inside the canvas area based on pointer
     const rect = canvasRef.current.getBoundingClientRect();
-    let clientX = 0;
-    
-    if ('touches' in e) {
-      clientX = e.touches[0].clientX;
-    } else {
-      clientX = e.clientX;
-    }
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
 
-    let percent = ((clientX - rect.left) / rect.width) * 100;
-    percent = Math.max(0, Math.min(percent, 100)); // Clamp between 0 and 100
+    const percent = Math.max(0, Math.min(((clientX - rect.left) / rect.width) * 100, 100)); // Clamp between 0 and 100
     setSliderPos(percent);
   }, []);
 
@@ -282,12 +275,9 @@ export default function App() {
         }
       };
 
-      let dataUrl;
-      if (format === 'png') {
-        dataUrl = await htmlToImage.toPng(canvasRef.current, options);
-      } else {
-        dataUrl = await htmlToImage.toJpeg(canvasRef.current, options);
-      }
+      const dataUrl = format === 'png'
+        ? await htmlToImage.toPng(canvasRef.current, options)
+        : await htmlToImage.toJpeg(canvasRef.current, options);
 
       const link = document.createElement('a');
       link.download = `before-after-${Date.now()}.${format}`;
@@ -398,16 +388,9 @@ export default function App() {
     padding: `${Math.max(4, labelSize * 0.2) * uiScale}px ${Math.max(8, labelSize * 0.5) * uiScale}px`,
   };
 
-  let computedAspectRatio = aspectRatio;
-  if (aspectRatio === 'auto' && detectedRatio) {
-     if (mode === 'side-by-side') {
-        computedAspectRatio = `${detectedRatio * 2}`;
-     } else if (mode === 'vertical') {
-        computedAspectRatio = `${detectedRatio / 2}`;
-     } else {
-        computedAspectRatio = `${detectedRatio}`;
-     }
-  }
+  const computedAspectRatio = (aspectRatio === 'auto' && detectedRatio)
+    ? (mode === 'side-by-side' ? `${detectedRatio * 2}` : (mode === 'vertical' ? `${detectedRatio / 2}` : `${detectedRatio}`))
+    : aspectRatio;
 
   return (
     <div className="h-[100dvh] flex flex-col md:flex-row transition-colors duration-300 font-body bg-[var(--background)] text-[var(--foreground)] overflow-hidden">
@@ -1205,13 +1188,9 @@ function DraggableLabel({
       const dropX = upEvent.clientX - parentRectAfter.left;
       const dropY = upEvent.clientY - parentRectAfter.top;
 
-      let newX = 'center';
-      if (dropX < parentRectAfter.width / 3) newX = 'left';
-      else if (dropX > (parentRectAfter.width * 2) / 3) newX = 'right';
+      const newX = dropX < parentRectAfter.width / 3 ? 'left' : (dropX > (parentRectAfter.width * 2) / 3 ? 'right' : 'center');
 
-      let newY = 'center';
-      if (dropY < parentRectAfter.height / 3) newY = 'top';
-      else if (dropY > (parentRectAfter.height * 2) / 3) newY = 'bottom';
+      const newY = dropY < parentRectAfter.height / 3 ? 'top' : (dropY > (parentRectAfter.height * 2) / 3 ? 'bottom' : 'center');
 
       onPosChange({ x: newX, y: newY });
     };

@@ -64,12 +64,7 @@ export async function exportVideoTask(
     const t = i / fps;
     const tInCycle = t % cycleTime;
     
-    let linearP;
-    if (tInCycle < sweepTime) {
-      linearP = tInCycle / sweepTime;
-    } else {
-      linearP = 1 - ((tInCycle - sweepTime) / sweepTime);
-    }
+    const linearP = tInCycle < sweepTime ? tInCycle / sweepTime : 1 - ((tInCycle - sweepTime) / sweepTime);
     
     return easeInOutSine(linearP);
   };
