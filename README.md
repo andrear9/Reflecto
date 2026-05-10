@@ -62,6 +62,14 @@ For legacy formats, Reflecto uses `gifenc`. By scaling down internal viewports a
 ### High-Resolution Stills
 Single-frame snaps are processed with dynamic density scaling to ensure retina-ready (2x/3x) exports, and can be instantly copied to the user's OS clipboard using the asynchronous Clipboard API.
 
+<br>
+
+<div align="center">
+  <img src="./public/export.png" alt="reflecto export Preview" style="border-radius: 12px; border: 1px solid #27272a;" />
+</div>
+
+<br>
+
 ---
 
 ## 🚀 Getting Started
