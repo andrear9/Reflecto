@@ -211,22 +211,35 @@ export default function App() {
     };
   }, [handleDrag, handleDragEnd]);
 
+
+  // Keyboard Shortcuts State Ref
+  const stateRef = useRef({
+    mode, actualScale, beforeImage, afterImage,
+    beforeLabel, afterLabel, beforeLabelPos, afterLabelPos
+  });
+
+  useEffect(() => {
+    stateRef.current = {
+      mode, actualScale, beforeImage, afterImage,
+      beforeLabel, afterLabel, beforeLabelPos, afterLabelPos
+    };
+  }, [mode, actualScale, beforeImage, afterImage, beforeLabel, afterLabel, beforeLabelPos, afterLabelPos]);
+
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if typing in an input
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.tagName === 'SELECT') return;
 
+      const { mode, actualScale, beforeImage, afterImage, beforeLabel, afterLabel, beforeLabelPos, afterLabelPos } = stateRef.current;
+
       if (e.key === 's' || e.key === 'S') {
-        const tempImg = beforeImage;
-        const tempLbl = beforeLabel;
-        const tempPos = beforeLabelPos;
         setBeforeImage(afterImage);
-        setAfterImage(tempImg);
+        setAfterImage(beforeImage);
         setBeforeLabel(afterLabel);
-        setAfterLabel(tempLbl);
+        setAfterLabel(beforeLabel);
         setBeforeLabelPos(afterLabelPos);
-        setAfterLabelPos(tempPos);
+        setAfterLabelPos(beforeLabelPos);
       } else if (e.key === '-' || e.key === '_') {
         setZoomLevel(z => z === 'auto' ? Math.max(10, Math.round(actualScale * 100) - 10) : Math.max(10, (z as number) - 10));
       } else if (e.key === '=' || e.key === '+') {
@@ -242,7 +255,7 @@ export default function App() {
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, actualScale, beforeImage, afterImage, beforeLabel, afterLabel, beforeLabelPos, afterLabelPos]);
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'before'|'after'|'logo') => {
     const file = e.target.files?.[0];
