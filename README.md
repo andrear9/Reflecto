@@ -39,6 +39,10 @@ Built with performance in mind, Reflecto uses a highly optimized Canvas renderin
 - **Zero-Server Processing**: Completely client-side architecture. No user images are ever uploaded or transmitted remotely.
 - **Fluid Workspace**: Adaptive interface with native dark/light theming, clipboard copying, and seamless touch/mouse pointer scaling.
 
+<div align="center">
+  <img src="./public/feature.gif" alt="reflecto Features Preview" style="border-radius: 12px; border: 1px solid #27272a;" />
+</div>
+
 ---
 
 ## 🔄 The Export Pipeline
