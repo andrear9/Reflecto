@@ -1,0 +1,5 @@
+Title: 🧪 Add tests for App component
+Description:
+🎯 **What:** The App component had no tests. Set up Vitest, testing-library/react, and jsdom to run React component tests.
+📊 **Coverage:** Covered the happy paths: App renders without crashing, uploading "Before" images updates correctly, uploading "After" images updates correctly, and exporting (MP4/GIF) correctly triggers the exported utility tasks using mocks.
+✨ **Result:** Tests pass locally (`npm run test:run`) ensuring that the main export operations and interface bindings are protected from unintended regressions.
