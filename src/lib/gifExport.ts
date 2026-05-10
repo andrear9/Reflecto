@@ -1,10 +1,6 @@
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import * as htmlToImage from 'html-to-image';
-
-// Easing function (in-out sine)
-function easeInOutSine(x: number): number {
-  return -(Math.cos(Math.PI * x) - 1) / 2;
-}
+import { easeInOutSine } from './utils';
 
 export async function exportGifTask(
   container: HTMLDivElement,
@@ -142,6 +138,14 @@ export async function exportGifTask(
   const format = "rgb565"; 
   const gif = GIFEncoder();
 
+  // Pre-calculate slider UI dimensions
+  const uiScale = width / 1000;
+  const handleThickness = Math.max(2, 2 * uiScale);
+  const radius = Math.max(16, 20 * uiScale);
+  const shadowBlur = 8 * uiScale;
+  const shadowOffsetY = 2 * uiScale;
+  const arrowSize = radius * 0.4;
+
   for (let i = 0; i < totalFrames; i++) {
     const p = getPositionForFrame(i);
     
@@ -157,23 +161,19 @@ export async function exportGifTask(
       ctx.restore();
 
       if (p > 0 && p < 1) {
-        const uiScale = width / 1000;
         const handleX = width * p;
         ctx.fillStyle = 'white';
-        const handleThickness = Math.max(2, 2 * uiScale);
         ctx.fillRect(handleX - handleThickness / 2, 0, handleThickness, height);
         
-        const radius = Math.max(16, 20 * uiScale); 
         ctx.shadowColor = 'rgba(0,0,0,0.4)';
-        ctx.shadowBlur = 8 * uiScale;
-        ctx.shadowOffsetY = 2 * uiScale;
+        ctx.shadowBlur = shadowBlur;
+        ctx.shadowOffsetY = shadowOffsetY;
         ctx.beginPath();
         ctx.arc(handleX, height / 2, radius, 0, Math.PI * 2);
         ctx.fillStyle = 'white';
         ctx.fill();
         ctx.shadowColor = 'transparent'; 
         
-        const arrowSize = radius * 0.4;
         ctx.fillStyle = '#4a5568';
         ctx.beginPath();
         ctx.moveTo(handleX - arrowSize, height / 2);

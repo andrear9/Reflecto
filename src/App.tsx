@@ -290,6 +290,7 @@ export default function App() {
       }
 
       const link = document.createElement('a');
+      link.rel = 'noopener noreferrer';
       link.download = `before-after-${Date.now()}.${format}`;
       link.href = dataUrl;
       link.click();
@@ -316,6 +317,7 @@ export default function App() {
       const blob = new Blob([buffer], { type: 'video/mp4' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
+      link.rel = 'noopener noreferrer';
       link.download = `reflecto_export_${Date.now()}.mp4`;
       link.href = url;
       link.click();
@@ -347,6 +349,7 @@ export default function App() {
       const blob = new Blob([buffer], { type: 'image/gif' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
+      link.rel = 'noopener noreferrer';
       link.download = `reflecto_export_${Date.now()}.gif`;
       link.href = url;
       link.click();
