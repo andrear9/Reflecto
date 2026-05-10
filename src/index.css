@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-bg-dark: #09090b;
+  --color-surface-dark: #18181b;
+  --color-border-dark: #27272a;
+  --color-text-dark: #fafafa;
+  --color-muted-dark: #a1a1aa;
+  
+  --color-bg-light: #f4f4f5;
+  --color-surface-light: #ffffff;
+  --color-border-light: #e4e4e7;
+  --color-text-light: #09090b;
+  --color-muted-light: #71717a;
+
+  --color-accent: #6366f1;
+  --color-accent-hover: #4f46e5;
+
+  --font-heading: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-logo: "Outfit", sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: var(--color-bg-light);
+    --surface: var(--color-surface-light);
+    --border: var(--color-border-light);
+    --foreground: var(--color-text-light);
+    --muted: var(--color-muted-light);
+  }
+
+  .dark {
+    --background: var(--color-bg-dark);
+    --surface: var(--color-surface-dark);
+    --border: var(--color-border-dark);
+    --foreground: var(--color-text-dark);
+    --muted: var(--color-muted-dark);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    @apply font-body antialiased transition-colors duration-300;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+
+  /* Global Scrollbar Styling */
+  * {
+    scrollbar-color: var(--border) transparent;
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted);
+  }
+}
+
+@layer utilities {
+  .label-caps {
+    @apply text-[11px] uppercase tracking-[0.1em] font-semibold block text-[var(--muted)] mb-3;
+  }
+  
+  .input-dark {
+    @apply bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 w-full text-[var(--foreground)] text-sm focus:outline-none focus:border-[var(--color-accent)] focus:ring-[0.5px] focus:ring-[var(--color-accent)] transition-all placeholder:text-[var(--muted)] shadow-sm;
+  }
+  
+  .canvas-preview {
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .range-slider {
+    @apply w-full h-1.5 bg-[var(--border)] rounded-lg appearance-none cursor-pointer;
+  }
+  .range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-surface-light);
+    cursor: pointer;
+    border: 2px solid var(--color-accent);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .dark .range-slider::-webkit-slider-thumb {
+    background: var(--color-surface-dark);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+  
+  .btn-accent {
+    @apply bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] transition-all duration-200 shadow-sm shadow-indigo-500/20 active:scale-[0.98];
+  }
+}
+
+

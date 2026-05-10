@@ -1,0 +1,16 @@
+{
+  "name": "reflecto. | Comparison Studio",
+  "short_name": "reflecto",
+  "description": "Create beautiful before/after photo comparisons and easily export high-res images, GIFs, and videos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

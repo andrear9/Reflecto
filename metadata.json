@@ -1,0 +1,6 @@
+{
+  "name": "Before/After Comparison Tool",
+  "description": "A web app to create and customize before/after photo comparisons with various visualization modes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
