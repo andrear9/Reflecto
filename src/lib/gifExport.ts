@@ -88,6 +88,18 @@ export async function exportGifTask(
   const format = "rgb565"; 
   const gif = GIFEncoder();
 
+  // Generate a global palette by combining before and after states
+  const paletteCanvas = document.createElement('canvas');
+  paletteCanvas.width = width;
+  paletteCanvas.height = height * 2;
+  const paletteCtx = paletteCanvas.getContext('2d', { willReadFrequently: true });
+  if (!paletteCtx) throw new Error("Palette canvas context creation failed");
+  paletteCtx.drawImage(beforeCanvas, 0, 0, width, height);
+  paletteCtx.drawImage(afterCanvas, 0, height, width, height);
+
+  const combinedImageData = paletteCtx.getImageData(0, 0, width, height * 2);
+  const globalPalette = quantize(combinedImageData.data, maxColors, { format });
+
   // Pre-calculate slider UI dimensions
   const uiScale = width / 1000;
   const handleThickness = Math.max(2, 2 * uiScale);
@@ -153,11 +165,10 @@ export async function exportGifTask(
     const imageData = ctx.getImageData(0, 0, width, height);
     const data = imageData.data;
     
-    // Create palette per frame (can be optimized but better quality)
-    const palette = quantize(data, maxColors, { format });
-    const index = applyPalette(data, palette, format);
+    // Use pre-calculated global palette
+    const index = applyPalette(data, globalPalette, format);
 
-    gif.writeFrame(index, width, height, { palette, delay: 1000 / fps });
+    gif.writeFrame(index, width, height, { palette: globalPalette, delay: 1000 / fps });
 
     onProgress((i / totalFrames) * 100);
   }
