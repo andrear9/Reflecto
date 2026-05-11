@@ -17,7 +17,11 @@ type LabelPosX = 'left' | 'center' | 'right';
 type LabelPosY = 'top' | 'center' | 'bottom';
 export type LabelPos = { x: LabelPosX; y: LabelPosY };
 
+export type ImageTransform = { x: number; y: number; scale: number };
+
 export default function App() {
+  const [beforeTransform, setBeforeTransform] = useState<ImageTransform>({ x: 0, y: 0, scale: 1 });
+  const [afterTransform, setAfterTransform] = useState<ImageTransform>({ x: 0, y: 0, scale: 1 });
   const [beforeImage, setBeforeImage] = useState<string | null>(null);
   const [afterImage, setAfterImage] = useState<string | null>(null);
   
@@ -195,7 +199,7 @@ export default function App() {
 
     let percent = ((clientX - rect.left) / rect.width) * 100;
     percent = Math.max(0, Math.min(percent, 100)); // Clamp between 0 and 100
-    setSliderPos(percent);
+    setSliderPos(Math.round(percent * 100) / 100);
   }, []);
 
   useEffect(() => {
@@ -234,9 +238,9 @@ export default function App() {
       } else if (e.key === '0') {
         setZoomLevel('auto');
       } else if (e.key === 'ArrowLeft' && mode === 'slider') {
-        setSliderPos(p => Math.max(0, p - 5));
+        setSliderPos(p => Math.round(Math.max(0, p - 5) * 100) / 100);
       } else if (e.key === 'ArrowRight' && mode === 'slider') {
-        setSliderPos(p => Math.min(100, p + 5));
+        setSliderPos(p => Math.round(Math.min(100, p + 5) * 100) / 100);
       }
     };
     
@@ -587,7 +591,7 @@ export default function App() {
             {/* Mode-specific controls */}
             {mode === 'slider' && (
               <div className="bg-[var(--surface)] p-4 rounded-xl border border-[var(--border)] shadow-sm">
-                <SliderControl label="Divider Position" value={sliderPos} min={0} max={100} onChange={setSliderPos} unit="%" />
+                <SliderControl label="Divider Position" value={sliderPos} min={0} max={100} step={0.01} onChange={setSliderPos} unit="%" />
               </div>
             )}
             {mode === 'split' && (
@@ -896,7 +900,7 @@ export default function App() {
                     <div className="relative w-full select-none flex items-stretch overflow-hidden bg-[var(--surface)]" style={{ borderRadius: `${imageRadius}px` }}>
                       {/* Base Image (After) */}
                       <div className="absolute inset-0 w-full h-full bg-[var(--background)]">
-                        {afterImage && <img src={afterImage} alt="After" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} draggable={false} style={afterFilterStyle} />}
+                        {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} draggable={false} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                         {showLabels && afterImage && (
                           <DraggableLabel text={afterLabel} style={labelStyle} pos={afterLabelPos} onPosChange={setAfterLabelPos} opacity={sliderPos < 85 ? 1 : 0} />
                         )}
@@ -904,7 +908,7 @@ export default function App() {
                       
                       {/* Better clipping via clip-path */}
                       <div id="capture-clip-path" className="absolute inset-0 pointer-events-none w-full h-full bg-[var(--background)]" style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}>
-                         {beforeImage && <img src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} draggable={false} style={beforeFilterStyle} />}
+                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} draggable={false} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                          {showLabels && beforeImage && (
                            <DraggableLabel id="capture-before-label" text={beforeLabel} style={labelStyle} pos={beforeLabelPos} onPosChange={setBeforeLabelPos} opacity={sliderPos > 15 ? 1 : 0} />
                          )}
@@ -937,13 +941,13 @@ export default function App() {
                   {mode === 'side-by-side' && (
                     <div className="flex w-full h-full min-h-[400px]" style={{ gap: `${innerSpacing}px` }}>
                       <div className="w-1/2 relative bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
-                         {beforeImage && <img src={beforeImage} alt="Before" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} />}
+                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                          {showLabels && beforeImage && (
                            <DraggableLabel text={beforeLabel} style={labelStyle} pos={beforeLabelPos} onPosChange={setBeforeLabelPos} />
                          )}
                       </div>
                       <div className="w-1/2 relative bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
-                         {afterImage && <img src={afterImage} alt="After" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} />}
+                         {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                          {showLabels && afterImage && (
                            <DraggableLabel text={afterLabel} style={labelStyle} pos={afterLabelPos} onPosChange={setAfterLabelPos} />
                          )}
@@ -955,13 +959,13 @@ export default function App() {
                   {mode === 'vertical' && (
                     <div className="flex flex-col w-full min-h-[600px]" style={{ gap: `${innerSpacing}px` }}>
                       <div className="h-1/2 relative bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
-                         {beforeImage && <img src={beforeImage} alt="Before" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} />}
+                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                          {showLabels && beforeImage && (
                            <DraggableLabel text={beforeLabel} style={labelStyle} pos={beforeLabelPos} onPosChange={setBeforeLabelPos} />
                          )}
                       </div>
                       <div className="h-1/2 relative bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
-                         {afterImage && <img src={afterImage} alt="After" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} />}
+                         {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                          {showLabels && afterImage && (
                            <DraggableLabel text={afterLabel} style={labelStyle} pos={afterLabelPos} onPosChange={setAfterLabelPos} />
                          )}
@@ -973,12 +977,12 @@ export default function App() {
                   {mode === 'split' && (
                      <div className="relative w-full h-full select-none bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
                         <div className="absolute inset-0 w-full h-full">
-                          {afterImage && <img src={afterImage} alt="After" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} />}
+                          {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                         </div>
                         <div className="absolute inset-0 w-full h-full bg-[var(--surface)] pointer-events-none" style={{ 
                            clipPath: `polygon(0 0, ${50 + splitAngle}% 0, ${50 - splitAngle}% 100%, 0 100%)`
                         }}>
-                          {beforeImage && <img src={beforeImage} alt="Before" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} />}
+                          {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                         </div>
                         {/* Divider Line */}
                         <div className="absolute inset-0 pointer-events-none w-full h-full" style={{ overflow: 'hidden' }}>
@@ -999,10 +1003,10 @@ export default function App() {
                   {mode === 'fade' && (
                     <div className="relative w-full h-full bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
                       <div className="absolute inset-0 w-full h-full pointer-events-none">
-                         {beforeImage && <img src={beforeImage} alt="Before" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} />}
+                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                       </div>
                       <div id="capture-fade" className="absolute inset-0 w-full h-full transition-opacity duration-75 pointer-events-none" style={{ opacity: fadeOpacity / 100 }}>
-                         {afterImage && <img src={afterImage} alt="After" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} />}
+                         {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                       </div>
                       {showLabels && beforeImage && (
                          <DraggableLabel id="capture-before-label" text={beforeLabel} style={labelStyle} pos={beforeLabelPos} onPosChange={setBeforeLabelPos} opacity={1 - fadeOpacity/100} />
@@ -1041,11 +1045,16 @@ export default function App() {
 
 // Subcomponents for minimal UI styling
 
-function UploadZone({ label, image, onChange, onRemove, height = "h-32" }: { label: string, image: string | null, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, onRemove: () => void, height?: string }) {
+function UploadZone({ label, image, onChange, onRemove, onResetPos, height = "h-32" }: { label: string, image: string | null, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, onRemove: () => void, onResetPos?: () => void, height?: string }) {
   return (
     <div className="flex flex-col w-full">
       <span className="text-xs font-semibold text-[var(--foreground)] mb-2 flex items-center justify-between">
         {label}
+        {image && onResetPos && (
+          <button onClick={onResetPos} className="text-[10px] text-[var(--muted)] hover:text-[var(--color-accent)] transition-colors flex items-center gap-1" title="Reset Image Position">
+            <Maximize className="w-3 h-3" /> Reset Pos
+          </button>
+        )}
       </span>
       <div className={cn("relative group w-full border border-dashed border-[var(--border)] rounded-2xl overflow-hidden hover:border-[var(--color-accent)] transition-all duration-300 bg-[var(--background)]", height)}>
         {image ? (
@@ -1275,5 +1284,103 @@ function DraggableLabel({
         </div>
       )}
     </>
+  );
+}
+
+function PanZoomImage({
+  src,
+  alt,
+  className,
+  style,
+  draggable = false,
+  transform,
+  setTransform,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  style?: React.CSSProperties;
+  draggable?: boolean;
+  transform: ImageTransform;
+  setTransform: React.Dispatch<React.SetStateAction<ImageTransform>>;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const lastPos = useRef({ x: 0, y: 0 });
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    isDragging.current = true;
+    lastPos.current = { x: e.clientX, y: e.clientY };
+    if (containerRef.current) {
+      containerRef.current.setPointerCapture(e.pointerId);
+      containerRef.current.style.cursor = 'grabbing';
+    }
+    e.preventDefault();
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.clientX - lastPos.current.x;
+    const dy = e.clientY - lastPos.current.y;
+    lastPos.current = { x: e.clientX, y: e.clientY };
+
+    setTransform(prev => ({
+      ...prev,
+      x: prev.x + dx,
+      y: prev.y + dy
+    }));
+  }, [setTransform]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    isDragging.current = false;
+    if (containerRef.current) {
+      containerRef.current.releasePointerCapture(e.pointerId);
+      containerRef.current.style.cursor = 'grab';
+    }
+  }, []);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomSensitivity = 0.001;
+    const delta = -e.deltaY * zoomSensitivity;
+    setTransform(prev => {
+      const newScale = Math.min(Math.max(0.1, prev.scale + delta), 10);
+      return { ...prev, scale: newScale };
+    });
+  }, [setTransform]);
+
+  const handleDoubleClick = useCallback(() => {
+    setTransform({ x: 0, y: 0, scale: 1 });
+  }, [setTransform]);
+
+  // Transform scale and translate, applied via transform-gpu for hardware acceleration
+  const transformStyle: React.CSSProperties = {
+    ...style,
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`,
+    transformOrigin: 'center center',
+    transition: isDragging.current ? 'none' : 'transform 0.1s ease-out',
+    cursor: isDragging.current ? 'grabbing' : 'grab',
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn("w-full h-full relative overflow-hidden pointer-events-auto", className)}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onWheel={handleWheel}
+      onDoubleClick={handleDoubleClick}
+      style={{ touchAction: 'none' }}
+    >
+      <img
+        src={src}
+        alt={alt}
+        draggable={draggable}
+        className={cn("w-full h-full block pointer-events-none")}
+        style={transformStyle}
+      />
+    </div>
   );
 }
