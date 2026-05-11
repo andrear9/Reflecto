@@ -1,5 +1,12 @@
-Title: 🧪 Add tests for App component
-Description:
-🎯 **What:** The App component had no tests. Set up Vitest, testing-library/react, and jsdom to run React component tests.
-📊 **Coverage:** Covered the happy paths: App renders without crashing, uploading "Before" images updates correctly, uploading "After" images updates correctly, and exporting (MP4/GIF) correctly triggers the exported utility tasks using mocks.
-✨ **Result:** Tests pass locally (`npm run test:run`) ensuring that the main export operations and interface bindings are protected from unintended regressions.
+🧹 [Code Health] Extract duplicated DOM state and export utils to reduce code duplication
+
+🎯 **What:** The functions `applyDOMStateFade`, `applyDOMStateSlider`, and `getPositionForFrame` were duplicated across `gifExport.ts` and `videoExport.ts`. I extracted them into `utils.ts` and updated their call sites to pass the necessary scoped variables like `container`.
+
+💡 **Why:** Moving this identical logic to a central utility file ensures that future UI updates (e.g., changes to DOM IDs or transition logic) only need to happen in one place. It significantly reduces code complexity and improves overall maintainability.
+
+✅ **Verification:**
+- Ran type checks (`bun run lint`) and ensured there are no missing argument errors or type mismatches.
+- Ran the React test suite (`bun run test`) which passed all existing tests.
+- Successfully built the application (`npm run build`).
+
+✨ **Result:** Removed over 100 lines of identically duplicated code, providing a cleaner, DRYer codebase without altering existing functional behavior.
