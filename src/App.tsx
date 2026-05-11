@@ -322,7 +322,7 @@ export default function App() {
       URL.revokeObjectURL(url);
     } catch (e: any) {
       console.error(e);
-      alert('Video export failed: ' + e.message);
+      alert('Video export failed. Please try again.');
     } finally {
       setIsVideoExporting(false);
       setVideoExportProgress(0);
