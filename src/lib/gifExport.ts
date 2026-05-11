@@ -1,6 +1,6 @@
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import * as htmlToImage from 'html-to-image';
-import { easeInOutSine } from './utils';
+import { easeInOutSine, getPositionForFrame, applyDOMStateFade, applyDOMStateSlider } from './utils';
 
 export async function exportGifTask(
   container: HTMLDivElement,
@@ -40,57 +40,7 @@ export async function exportGifTask(
   const sweepTime = Math.max(0.1, timing.transition || 1);
   const cycleTime = sweepTime * 2;
 
-  // Calculate position p (0 to 1) based on frame index
-  const getPositionForFrame = (i: number) => {
-    const t = i / fps;
-    const tInCycle = t % cycleTime;
-    
-    let linearP;
-    if (tInCycle < sweepTime) {
-      linearP = tInCycle / sweepTime;
-    } else {
-      linearP = 1 - ((tInCycle - sweepTime) / sweepTime);
-    }
-    return easeInOutSine(linearP);
-  };
 
-  const applyDOMStateFade = (p: number) => {
-      const fade = container.querySelector('#capture-fade') as HTMLElement;
-      if (fade) {
-        fade.style.transition = 'none';
-        fade.style.opacity = (p).toString();
-      }
-
-      const beforeLabel = container.querySelector('#capture-before-label') as HTMLElement;
-      const afterLabel = container.querySelector('#capture-after-label') as HTMLElement;
-      if (beforeLabel) {
-        beforeLabel.style.transition = 'none';
-        beforeLabel.style.opacity = (1 - p).toString();
-      }
-      if (afterLabel) {
-        afterLabel.style.transition = 'none';
-        afterLabel.style.opacity = (p).toString();
-      }
-  }
-  const applyDOMStateSlider = (p: number) => {
-      const pct = p * 100;
-      const clip = container.querySelector('#capture-clip-path') as HTMLElement;
-      if (clip) {
-        clip.style.transition = 'none';
-        clip.style.clipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
-      }
-      
-      const beforeLabel = container.querySelector('#capture-before-label') as HTMLElement;
-      const afterLabel = container.querySelector('#capture-after-label') as HTMLElement;
-      if (beforeLabel) {
-        beforeLabel.style.transition = 'none';
-        beforeLabel.style.opacity = p > 0.15 ? '1' : '0';
-      }
-      if (afterLabel) {
-        afterLabel.style.transition = 'none';
-        afterLabel.style.opacity = p < 0.85 ? '1' : '0';
-      }
-  }
 
   // Pre-render Before and After frames using htmlToImage ONCE
   let beforeCanvas: HTMLCanvasElement;
@@ -107,19 +57,19 @@ export async function exportGifTask(
   };
 
   if (mode === 'slider') {
-    applyDOMStateSlider(1); // 100% (Before fully visible)
+    applyDOMStateSlider(container, 1); // 100% (Before fully visible)
     await new Promise(r => requestAnimationFrame(r));
     beforeCanvas = await htmlToImage.toCanvas(container, captureOpts);
 
-    applyDOMStateSlider(0); // 0% (After fully visible)
+    applyDOMStateSlider(container, 0); // 0% (After fully visible)
     await new Promise(r => requestAnimationFrame(r));
     afterCanvas = await htmlToImage.toCanvas(container, captureOpts);
   } else if (mode === 'fade') {
-    applyDOMStateFade(0); // Before fully visible
+    applyDOMStateFade(container, 0); // Before fully visible
     await new Promise(r => requestAnimationFrame(r));
     beforeCanvas = await htmlToImage.toCanvas(container, captureOpts);
 
-    applyDOMStateFade(1); // After fully visible
+    applyDOMStateFade(container, 1); // After fully visible
     await new Promise(r => requestAnimationFrame(r));
     afterCanvas = await htmlToImage.toCanvas(container, captureOpts);
   } else {
@@ -159,7 +109,7 @@ export async function exportGifTask(
   const arrowSize = radius * 0.4;
 
   for (let i = 0; i < totalFrames; i++) {
-    const p = getPositionForFrame(i);
+    const p = getPositionForFrame(i, fps, cycleTime, sweepTime);
     
     ctx.clearRect(0, 0, width, height);
 
@@ -231,14 +181,14 @@ export async function exportGifTask(
     const clip = container.querySelector('#capture-clip-path') as HTMLElement;
     if (clip) clip.style.transition = '';
     
-    applyDOMStateSlider(initialPcts.sliderPos / 100);
+    applyDOMStateSlider(container, initialPcts.sliderPos / 100);
     const handle = container.querySelector('#capture-slider-handle') as HTMLElement;
     if (handle) handle.style.left = `${initialPcts.sliderPos}%`;
   } else if (mode === 'fade') {
     const fade = container.querySelector('#capture-fade') as HTMLElement;
     if (fade) fade.style.transition = '';
     
-    applyDOMStateFade(initialPcts.fadeOpacity / 100);
+    applyDOMStateFade(container, initialPcts.fadeOpacity / 100);
   }
   
   const beforeLabel = container.querySelector('#capture-before-label') as HTMLElement;
