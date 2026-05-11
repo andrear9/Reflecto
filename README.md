@@ -1,7 +1,9 @@
 <div align="center">
   <img src="./public/reflecto-logo.png" alt="Reflecto Logo" height="100" />
-  <p><strong>Create beautiful, high-resolution before & after comparisons.</strong></p>
-  
+
+  <h3>A privacy-first studio for beautiful before & after comparisons.</h3>
+  <p>Frame, label, and export — entirely in your browser. No uploads. No servers. No limits.</p>
+
   <p>
     <a href="https://github.com/andrear9/reflecto/releases"><img src="https://img.shields.io/github/v/release/andrear9/reflecto?style=flat-square&color=6366f1" alt="Release"></a>
     <a href="https://github.com/andrear9/reflecto/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&color=6366f1" alt="License"></a>
@@ -14,60 +16,69 @@
 
 ---
 
-## ✦ Overview
-
-**Reflecto** is a modern, privacy-first, client-side web application designed to generate stunning 'before and after' image comparisons. Whether you're a designer showcasing a rebrand, a photographer displaying editing transformations, or a developer presenting UI upgrades, Reflecto provides a robust toolkit to frame, label, and export your comparisons flawlessly.
-
-Built with performance in mind, Reflecto uses a highly optimized Canvas rendering pipeline and modern WebCodecs APIs to generate smooth, high-fidelity MP4 videos, animated GIFs, and images directly in the browser—with zero server processing.
-
-<br>
-
 <div align="center">
-  <img src="./public/Screenshot.png" alt="reflecto Interface Preview" style="border-radius: 12px; border: 1px solid #27272a;" />
+  <img src="./public/Screenshot.png" alt="Reflecto interface preview" style="border-radius: 12px; border: 1px solid #27272a;" />
   <p><em>Turn raw assets into engaging, social-ready comparisons in seconds.</em></p>
 </div>
 
 <br>
 
+## What is Reflecto?
+
+Reflecto is a client-side comparison studio built for designers, photographers, and developers who need to present visual changes clearly and beautifully. Drop in two images, choose a transition style, fine-tune the framing, and export — as a high-resolution PNG, a 60FPS MP4, or a compressed GIF optimized for social sharing.
+
+Everything runs directly in the browser. Your images are never uploaded anywhere.
+
+<br>
+
 ## ✨ Features
 
-- **5 Distinct Comparison Modes**: Slider, Side-by-Side, Diagonal Split, Vertical Stack, and Alpha Fade transitions.
-- **Independent Pan & Zoom Controls**: Reposition each image layer inside its crop frame with drag-to-pan and scroll-to-zoom. Transformations are isolated per layer, CSS-masked to prevent clipping, and can be reset instantly from the image title bar.
-- **Hardware-Accelerated Video Exports**: Leverages native `VideoEncoder` (WebCodecs API) for lightning-fast 60FPS MP4 generation.
-- **Pixel-Perfect Canvas Engine**: Dial in custom padding, viewport inset spacing, boundary border radii, and dynamic background colors.
-- **Drag-and-Drop Labeling**: Free-form floating text labels with customizable typography, opacities, and interactive snapping boundaries.
-- **Image Treatment Layer**: Built-in visual adjustment filters (Brightness, Contrast, Saturation) mapped individually per layer.
-- **Zero-Server Processing**: Completely client-side architecture. No user images are ever uploaded or transmitted remotely.
-- **Fluid Workspace**: Adaptive interface with native dark/light theming, clipboard copying, and seamless touch/mouse pointer scaling.
+### Comparison Modes
+Five distinct ways to present your before & after:
+
+| Mode | Description |
+|---|---|
+| **Slider** | Classic interactive drag handle |
+| **Side-by-Side** | Both images framed together |
+| **Diagonal Split** | Sharp angled divide |
+| **Vertical Stack** | Top-and-bottom layout |
+| **Alpha Fade** | Smooth cross-dissolve transition |
+
+### Image Controls
+- **Independent Pan & Zoom** per layer — drag to reposition, scroll to zoom, reset in one click. Transformations are CSS-masked to prevent clipping.
+- **Per-layer filters** — Brightness, Contrast, and Saturation adjustable individually for each image.
+
+### Workspace
+- Customizable canvas padding, border radius, and dynamic background colors.
+- **Draggable smart labels** with custom text, typography, and opacity — snap them anywhere on the frame.
+- Adaptive dark/light theming with seamless touch and mouse support.
+
+### Export Engine
+- **PNG** — Retina-ready static exports (2×/3×), instantly copyable to clipboard.
+- **MP4** — Hardware-accelerated 60FPS video via the native WebCodecs API.
+- **GIF** — Highly optimized animated GIFs with pre-computed global color palettes for fast, compact output.
 
 <br>
 
 <div align="center">
-  <img src="./public/features.gif" alt="reflecto Features Preview" style="border-radius: 12px; border: 1px solid #27272a;" />
+  <img src="./public/features.gif" alt="Reflecto features preview" style="border-radius: 12px; border: 1px solid #27272a;" />
 </div>
 
 <br>
 
 ---
 
-## 🔄 The Export Pipeline
+## 🔄 How Exports Work
 
-Reflecto's export engine is purpose-built to bypass traditional server-side rendering bottlenecks:
+Reflecto's export engine bypasses DOM capture entirely to avoid framerate drops and quality loss.
 
-### Video Encoding (MP4)
-Instead of capturing the DOM continuously (which causes framerate drops), Reflecto utilizes an optimized `requestAnimationFrame` loop. It pre-caches the 'before' and 'after' assets as raw bitmaps via `html-to-image`, and composits the transition math (bezier curves, sine easing, UI handles) dynamically onto a hidden 2D buffer canvas. The buffer is shipped frame-by-frame directly to the browser's native `VideoEncoder` leveraging the `mp4-muxer` library.
+**MP4 (WebCodecs):** Pre-caches both images as raw bitmaps, then composites each frame — including transition math, easing curves, and UI handles — directly onto a hidden canvas buffer. Frames are piped one-by-one into the browser's native `VideoEncoder` and muxed via `mp4-muxer`, with no server involvement at any step.
 
-### Animated GIFs
-For legacy formats, Reflecto uses `gifenc`. A single global color palette is extracted once by combining both the 'before' and 'after' frames into a temporary canvas before the render loop begins. This avoids redundant NeuQuant quantization on every frame, delivering roughly **3× faster** GIF processing overhead compared to per-frame palette extraction—with gains that scale linearly with animation length and framerate.
+**GIF:** Before the render loop starts, a single global color palette is extracted by combining both frames into a temporary canvas. This means NeuQuant color quantization runs once per export instead of once per frame — yielding roughly **3× faster processing** that scales with animation length and framerate.
 
-### High-Resolution Stills
-Single-frame snaps are processed with dynamic density scaling to ensure retina-ready (2x/3x) exports, and can be instantly copied to the user's OS clipboard using the asynchronous Clipboard API.
+**PNG:** Dynamic density scaling produces retina-ready output at 2×/3× resolution, delivered via the async Clipboard API or as a direct download.
 
-<br>
-
-<div align="center">
-  <img src="./public/export.png" alt="reflecto export Preview" style="border-radius: 12px; border: 1px solid #27272a;" />
-</div>
+> **Browser note:** MP4 exports are optimized for Chromium-based browsers (Chrome, Edge, Brave, Arc) where `VideoEncoder` hardware acceleration is most reliable.
 
 <br>
 
@@ -75,132 +86,119 @@ Single-frame snaps are processed with dynamic density scaling to ensure retina-r
 
 ## 🚀 Getting Started
 
-### Local Development Workflow
+**Prerequisites:** Node.js 18+ and npm (or bun).
 
-Reflecto is built to be fast, typed, and dependency-light.
-
-**1. Clone the repository**
 ```bash
-git clone https://github.com/yourusername/reflecto.git
+# 1. Clone
+git clone https://github.com/andrear9/reflecto.git
 cd reflecto
-```
 
-**2. Install dependencies**
-```bash
+# 2. Install
 npm install
-```
 
-**3. Start the development server**
-```bash
+# 3. Run
 npm run dev
 ```
 
-The application will be accessible at `http://localhost:3000`.
+Open `http://localhost:3000` in your browser.
 
-### Environment Configuration
+### Build for production
 
-By default, Reflecto requires zero environment variables to run its core capabilities. If you plan to extend the application, duplicate the example file:
+```bash
+npm run build    # outputs to /dist — minified and tree-shaken by Vite
+npm run preview  # preview the production build locally
+```
+
+No environment variables are required to run the core application. If you're extending it:
 
 ```bash
 cp .env.example .env.local
 ```
 
-### Build & Production
-To generate a highly optimized static build for production platforms:
-
-```bash
-npm run build
-```
-The output will be compiled to the `/dist` directory, fully minified and tree-shaken by Vite. 
-
-To preview the production build locally:
-```bash
-npm run preview
-```
+<br>
 
 ---
 
-## 🏗 Architecture & Tech Stack
+## 🏗 Tech Stack
 
-Reflecto balances structural integrity with cutting-edge front-end patterns:
+| Layer | Choice | Why |
+|---|---|---|
+| Framework | React 19 | Predictable state, concurrent features |
+| Build | Vite 6 | Sub-second HMR, optimized output |
+| Styling | Tailwind CSS v4 | Utility-first, zero runtime |
+| Icons | lucide-react | Consistent geometric iconography |
+| DOM → Canvas | html-to-image | Clones React's virtual DOM into bitmaps |
+| Video | WebCodecs + mp4-muxer | Native hardware-accelerated encoding |
+| GIF | gifenc | Compact palette-optimized output |
 
-- **Framework**: `React 19` for component lifecycles and state predictability.
-- **Build Tool**: `Vite` for sub-second HMR and optimized rollout logic.
-- **Styling**: `Tailwind CSS v4` handles all layout geometries, color primitives, and responsive micro-adjustments decoupled from specific components.
-- **Icons**: `lucide-react` for clean, consistent, geometric iconography.
-- **DOM Rendering**: `html-to-image` traverses React's virtual DOM structure to clone and render SVG/Canvas nodes.
-- **Video Multiplexing**: `mp4-muxer` combined with WebCodecs API provides raw throughput.
+### Notable implementation details
 
-### Performance Optimizations
+- **No React in export loops** — `exportVideoTask` and `exportGifTask` operate entirely on Canvas APIs. React re-renders are kept completely out of the generation pipeline.
+- **Shared transition utilities** — `applyDOMStateFade`, `applyDOMStateSlider`, and `getPositionForFrame` live in `utils.ts` and are shared across both export modules, preventing logic drift.
+- **Pointer event delegation** — Label dragging uses `setPointerCapture` for unified mouse/touch/stylus tracking at 120Hz on modern devices, with no library overhead.
+- **Debounced ResizeObserver** — Prevents layout thrashing when the workspace is resized.
 
-- **Global GIF Palette Extraction**: Color quantization runs once per export against a combined canvas of both frames, rather than per-frame inside the render loop. This removes the dominant CPU bottleneck in GIF generation.
-- **Debounced Resizing**: The workspace actively intercepts `ResizeObserver` events to prevent layout thrashing on window resizes.
-- **No-React Rendering Loops**: The `exportVideoTask` operates purely on standard browser Canvas APIs, aggressively keeping standard React re-renders out of the generation loop.
-- **Pointer Event Delegation**: The label dragging system uses unified pointer events (`setPointerCapture`) natively, ensuring 120Hz smooth tracking on modern iPads and trackpads without heavy library overhead.
-
-### Code Quality
-
-- Shared DOM transition utilities (`applyDOMStateFade`, `applyDOMStateSlider`, `getPositionForFrame`) are centralized in `utils.ts`, eliminating previously duplicated logic across `gifExport.ts` and `videoExport.ts`.
-- The `PanZoomImage` component encapsulates all per-layer image positioning state, keeping transform logic isolated and independently testable.
-
----
-
-## 📱 Responsive & Cross-Platform
-
-Reflecto treats screen real estate as a fluid commodity:
-- **Desktop/Laptop**: Multi-column architecture prioritizing the canvas viewport with sticky side-panel configurations. 
-- **Tablet (Landscape/Portrait)**: Responsive flex-wrapping ensures toolbar utility remains accessible without compromising the touch targets of the canvas.
-- **Mobile Devices**: Focuses heavily on native sliding bottom sheets, horizontal scroll regions for media choices, and enforces native touch-action bounds.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions of all shapes. If you want to improve Reflecto:
-
-1. **Fork the repository** and create a feature branch (`git checkout -b feature/amazing-idea`).
-2. **Commit your changes** using conventional commit messages (`feat: add webm support`).
-3. **Push to the branch** (`git push origin feature/amazing-idea`).
-4. **Open a Pull Request** describing the context, intent, and testing applied.
-
-Please ensure the TypeScript linter passes (`npm run lint`) and the test suite is green (`bun run test`) prior to submitting PRs.
+<br>
 
 ---
 
 ## 🗺 Roadmap
 
 ### 🔗 Sharing & Collaboration
-- [ ] **Shareable Links**: Encode the full workspace state (mode, labels, filters, colors) into a URL so comparisons can be shared or bookmarked without re-uploading.
+- [ ] **Shareable Links** — Encode the full workspace state (mode, labels, filters, colors) into a URL so comparisons can be shared or bookmarked without re-uploading.
 
 ### 🎨 Workspace & Presets
-- [ ] **Saved Presets**: Store and recall named workspace configurations (mode, padding, background, label positions) for consistent branding across exports.
-- [ ] **Social Format Quick-Presets**: One-click canvas sizing for Instagram Square (1:1), Reels/TikTok (9:16), and Twitter/X header (16:9).
+- [ ] **Saved Presets** — Store and recall named workspace configurations for consistent branding across exports.
+- [ ] **Social Format Quick-Presets** — One-click canvas sizing for Instagram Square (1:1), Reels/TikTok (9:16), and Twitter/X header (16:9).
 
 ### 🖼 Comparison Modes
-- [ ] **3-Way Comparison (A/B/C)**: Support a third image layer for multi-version comparisons (e.g. Original → V1 → V2).
+- [ ] **3-Way Comparison (A/B/C)** — Support a third image layer for multi-version comparisons (e.g. Original → V1 → V2).
 
 ### 📤 Export
-- [ ] **WebM Export**: Alpha-channel transparent video for overlay use cases and design workflows.
-- [ ] **Batch Export**: Queue and export multiple comparison configurations in one click.
+- [ ] **WebM Export** — Alpha-channel transparent video for overlay use cases and design workflows.
+- [ ] **Batch Export** — Queue and export multiple comparison configurations in one click.
+
+### ⌨️ Workflow
+- [ ] **Keyboard Shortcuts** — Power-user bindings for switching modes, triggering exports, and nudging labels.
+
+<br>
 
 ---
 
-## ❓ FAQ & Troubleshooting
+## 🤝 Contributing
 
-**Exported Video is corrupted on older MacOS machines**  
-WebCodecs implementation varies by browser. Ensure you are using the latest Chromium-based browser (Chrome, Edge, Brave) for flawless h264 (`avc1`) encoding compliance. 
+Contributions are welcome — whether it's a bug fix, a new export format, or a roadmap feature.
 
-**Image exports are returning blank or tainted**  
-If you are loading images from external domains, ensure modern CORS policies are met, or use the direct file uploader which relies on local `URL.createObjectURL()`.
+1. Fork the repo and create a branch: `git checkout -b feat/your-idea`
+2. Make your changes and write a test if applicable.
+3. Verify everything passes: `npm run lint` and `bun run test`
+4. Open a pull request with a clear description of what changed and why.
+
+For larger changes, consider opening an issue first to discuss the approach.
+
+<br>
+
+---
+
+## ❓ FAQ
+
+**Video exports are corrupted or fail silently.**  
+Make sure you're on a recent Chromium-based browser. WebCodecs (`VideoEncoder`) support and h264 compliance vary significantly across browser engines.
+
+**Image exports come back blank or tainted.**  
+This happens when images are loaded from external domains without proper CORS headers. Use the file uploader instead — it relies on `URL.createObjectURL()` and bypasses cross-origin restrictions entirely.
+
+<br>
 
 ---
 
 ## 📜 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+MIT — see [`LICENSE`](./LICENSE) for details.
 
 ---
 
 <div align="center">
-  <p>Crafted & maintained with passion. <br> <a href="https://github.com/andrear9/reflecto">Leave a star</a> if you find this tool helpful.</p>
+  <p>Built and maintained with care.<br>
+  <a href="https://github.com/andrear9/reflecto">⭐ Star the repo</a> if Reflecto saves you time.</p>
 </div>
