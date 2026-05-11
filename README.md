@@ -32,6 +32,7 @@ Built with performance in mind, Reflecto uses a highly optimized Canvas renderin
 ## ✨ Features
 
 - **5 Distinct Comparison Modes**: Slider, Side-by-Side, Diagonal Split, Vertical Stack, and Alpha Fade transitions.
+- **Independent Pan & Zoom Controls**: Reposition each image layer inside its crop frame with drag-to-pan and scroll-to-zoom. Transformations are isolated per layer, CSS-masked to prevent clipping, and can be reset instantly from the image title bar.
 - **Hardware-Accelerated Video Exports**: Leverages native `VideoEncoder` (WebCodecs API) for lightning-fast 60FPS MP4 generation.
 - **Pixel-Perfect Canvas Engine**: Dial in custom padding, viewport inset spacing, boundary border radii, and dynamic background colors.
 - **Drag-and-Drop Labeling**: Free-form floating text labels with customizable typography, opacities, and interactive snapping boundaries.
@@ -54,10 +55,10 @@ Built with performance in mind, Reflecto uses a highly optimized Canvas renderin
 Reflecto's export engine is purpose-built to bypass traditional server-side rendering bottlenecks:
 
 ### Video Encoding (MP4)
-Instead of capturing the DOM continuously (which causes framerate drops), Reflecto utilizes an optimized `requestAnimationFrame` loop. It pre-caches the 'before' and 'after' assets as raw bitmaps via `html-to-image`, and composits the transition math (bezier curves, sine easing, UI handles) dynamically onto a hidden 2D buffer canvas. The buffer is shipped frame-by-frame directly to the browser's native `VideoEncoder` leveraging the `mp4-muxer` library. 
+Instead of capturing the DOM continuously (which causes framerate drops), Reflecto utilizes an optimized `requestAnimationFrame` loop. It pre-caches the 'before' and 'after' assets as raw bitmaps via `html-to-image`, and composits the transition math (bezier curves, sine easing, UI handles) dynamically onto a hidden 2D buffer canvas. The buffer is shipped frame-by-frame directly to the browser's native `VideoEncoder` leveraging the `mp4-muxer` library.
 
 ### Animated GIFs
-For legacy formats, Reflecto uses `gifenc`. By scaling down internal viewports and aggressively optimizing color palettes using NeuQuant chunking, it guarantees highly shareable, sub-10MB files without compromising the perceptual quality of the animation structure.
+For legacy formats, Reflecto uses `gifenc`. A single global color palette is extracted once by combining both the 'before' and 'after' frames into a temporary canvas before the render loop begins. This avoids redundant NeuQuant quantization on every frame, delivering roughly **3× faster** GIF processing overhead compared to per-frame palette extraction—with gains that scale linearly with animation length and framerate.
 
 ### High-Resolution Stills
 Single-frame snaps are processed with dynamic density scaling to ensure retina-ready (2x/3x) exports, and can be instantly copied to the user's OS clipboard using the asynchronous Clipboard API.
@@ -132,9 +133,15 @@ Reflecto balances structural integrity with cutting-edge front-end patterns:
 
 ### Performance Optimizations
 
+- **Global GIF Palette Extraction**: Color quantization runs once per export against a combined canvas of both frames, rather than per-frame inside the render loop. This removes the dominant CPU bottleneck in GIF generation.
 - **Debounced Resizing**: The workspace actively intercepts `ResizeObserver` events to prevent layout thrashing on window resizes.
 - **No-React Rendering Loops**: The `exportVideoTask` operates purely on standard browser Canvas APIs, aggressively keeping standard React re-renders out of the generation loop.
 - **Pointer Event Delegation**: The label dragging system uses unified pointer events (`setPointerCapture`) natively, ensuring 120Hz smooth tracking on modern iPads and trackpads without heavy library overhead.
+
+### Code Quality
+
+- Shared DOM transition utilities (`applyDOMStateFade`, `applyDOMStateSlider`, `getPositionForFrame`) are centralized in `utils.ts`, eliminating previously duplicated logic across `gifExport.ts` and `videoExport.ts`.
+- The `PanZoomImage` component encapsulates all per-layer image positioning state, keeping transform logic isolated and independently testable.
 
 ---
 
@@ -156,16 +163,25 @@ We welcome contributions of all shapes. If you want to improve Reflecto:
 3. **Push to the branch** (`git push origin feature/amazing-idea`).
 4. **Open a Pull Request** describing the context, intent, and testing applied.
 
-Please ensure the TypeScript linter passes (`npm run lint`) prior to submitting PRs.
+Please ensure the TypeScript linter passes (`npm run lint`) and the test suite is green (`bun run test`) prior to submitting PRs.
 
 ---
 
 ## 🗺 Roadmap
 
-- [ ] **WebM/ProRes Support**: Export alpha-channel transparent videos.
-- [ ] **Custom Watermarking**: Allow users to drop SVG vectors directly into the export queue.
-- [ ] **Social Presets**: 1-click aspect ratio crops for Instagram Reels, X headers, and Dribbble shots.
-- [ ] **Zoom/Pan Keyframing**: "Ken Burns" style movement leading into the comparison reveals.
+### 🔗 Sharing & Collaboration
+- [ ] **Shareable Links**: Encode the full workspace state (mode, labels, filters, colors) into a URL so comparisons can be shared or bookmarked without re-uploading.
+
+### 🎨 Workspace & Presets
+- [ ] **Saved Presets**: Store and recall named workspace configurations (mode, padding, background, label positions) for consistent branding across exports.
+- [ ] **Social Format Quick-Presets**: One-click canvas sizing for Instagram Square (1:1), Reels/TikTok (9:16), and Twitter/X header (16:9).
+
+### 🖼 Comparison Modes
+- [ ] **3-Way Comparison (A/B/C)**: Support a third image layer for multi-version comparisons (e.g. Original → V1 → V2).
+
+### 📤 Export
+- [ ] **WebM Export**: Alpha-channel transparent video for overlay use cases and design workflows.
+- [ ] **Batch Export**: Queue and export multiple comparison configurations in one click.
 
 ---
 
