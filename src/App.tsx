@@ -1353,19 +1353,20 @@ function PanZoomImage({
     setTransform({ x: 0, y: 0, scale: 1 });
   }, [setTransform]);
 
-  // Transform scale and translate, applied via transform-gpu for hardware acceleration
   const transformStyle: React.CSSProperties = {
-    ...style,
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`,
     transformOrigin: 'center center',
     transition: isDragging.current ? 'none' : 'transform 0.1s ease-out',
     cursor: isDragging.current ? 'grabbing' : 'grab',
+    width: '100%',
+    height: '100%',
+    display: 'block'
   };
 
   return (
     <div
       ref={containerRef}
-      className={cn("w-full h-full relative overflow-hidden pointer-events-auto", className)}
+      className={cn("absolute inset-0 w-full h-full overflow-hidden pointer-events-auto")}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -1378,8 +1379,8 @@ function PanZoomImage({
         src={src}
         alt={alt}
         draggable={draggable}
-        className={cn("w-full h-full block pointer-events-none")}
-        style={transformStyle}
+        className={cn("w-full h-full block pointer-events-none", className)}
+        style={{ ...style, ...transformStyle }}
       />
     </div>
   );
