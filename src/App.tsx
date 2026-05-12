@@ -11,6 +11,14 @@ import { cn } from './lib/utils';
 import { exportVideoTask } from './lib/videoExport';
 import { exportGifTask } from './lib/gifExport';
 
+import { IconButton } from './components/IconButton';
+import { SliderControl } from './components/SliderControl';
+import { Toggle } from './components/Toggle';
+import { GridSelector } from './components/GridSelector';
+import { DraggableLabel } from './components/DraggableLabel';
+import { PanZoomImage } from './components/PanZoomImage';
+
+
 type ViewMode = 'slider' | 'side-by-side' | 'split' | 'vertical' | 'fade';
 
 type LabelPosX = 'left' | 'center' | 'right';
@@ -18,6 +26,10 @@ type LabelPosY = 'top' | 'center' | 'bottom';
 export type LabelPos = { x: LabelPosX; y: LabelPosY };
 
 export type ImageTransform = { x: number; y: number; scale: number };
+
+
+const LABEL_COLORS = ['rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0, 0.8)', 'rgba(255, 255, 255, 0.5)', '#000000', '#ffffff', '#18181b', '#374151', '#6366f1'];
+const CANVAS_COLORS = ['#000000', '#0f0f0f', '#18181b', '#374151', '#ffffff', '#f8fafc', '#6366f1'];
 
 export default function App() {
   const [beforeTransform, setBeforeTransform] = useState<ImageTransform>({ x: 0, y: 0, scale: 1 });
@@ -66,10 +78,8 @@ export default function App() {
   const [afterFilters, setAfterFilters] = useState({ brightness: 100, contrast: 100, saturate: 100 });
   const [showFilters, setShowFilters] = useState(false);
 
-  const getFilterString = (f: { brightness: number, contrast: number, saturate: number }) => 
-    `brightness(${f.brightness}%) contrast(${f.contrast}%) saturate(${f.saturate}%)`;
-  const beforeFilterStyle = { filter: getFilterString(beforeFilters) };
-  const afterFilterStyle = { filter: getFilterString(afterFilters) };
+  const beforeFilterStyle = React.useMemo(() => ({ filter: `brightness(${beforeFilters.brightness}%) contrast(${beforeFilters.contrast}%) saturate(${beforeFilters.saturate}%)` }), [beforeFilters]);
+  const afterFilterStyle = React.useMemo(() => ({ filter: `brightness(${afterFilters.brightness}%) contrast(${afterFilters.contrast}%) saturate(${afterFilters.saturate}%)` }), [afterFilters]);
 
   // Theme
   const [isDark, setIsDark] = useState(() => {
@@ -216,43 +226,53 @@ export default function App() {
   }, [handleDrag, handleDragEnd]);
 
   // Keyboard Shortcuts
+  const stateRef = useRef({ beforeImage, afterImage, beforeLabel, afterLabel, beforeLabelPos, afterLabelPos, mode, actualScale });
+  useEffect(() => {
+    stateRef.current = { beforeImage, afterImage, beforeLabel, afterLabel, beforeLabelPos, afterLabelPos, mode, actualScale };
+  });
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const state = stateRef.current;
       // Ignore if typing in an input
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA' || document.activeElement?.tagName === 'SELECT') return;
 
       if (e.key === 's' || e.key === 'S') {
-        const tempImg = beforeImage;
-        const tempLbl = beforeLabel;
-        const tempPos = beforeLabelPos;
-        setBeforeImage(afterImage);
+        const tempImg = state.beforeImage;
+        const tempLbl = state.beforeLabel;
+        const tempPos = state.beforeLabelPos;
+        setBeforeImage(state.afterImage);
         setAfterImage(tempImg);
-        setBeforeLabel(afterLabel);
+        setBeforeLabel(state.afterLabel);
         setAfterLabel(tempLbl);
-        setBeforeLabelPos(afterLabelPos);
+        setBeforeLabelPos(state.afterLabelPos);
         setAfterLabelPos(tempPos);
       } else if (e.key === '-' || e.key === '_') {
-        setZoomLevel(z => z === 'auto' ? Math.max(10, Math.round(actualScale * 100) - 10) : Math.max(10, (z as number) - 10));
+        setZoomLevel(z => z === 'auto' ? Math.max(10, Math.round(stateRef.current.actualScale * 100) - 10) : Math.max(10, (z as number) - 10));
       } else if (e.key === '=' || e.key === '+') {
-        setZoomLevel(z => z === 'auto' ? Math.min(200, Math.round(actualScale * 100) + 10) : Math.min(200, (z as number) + 10));
+        setZoomLevel(z => z === 'auto' ? Math.min(200, Math.round(stateRef.current.actualScale * 100) + 10) : Math.min(200, (z as number) + 10));
       } else if (e.key === '0') {
         setZoomLevel('auto');
-      } else if (e.key === 'ArrowLeft' && mode === 'slider') {
+      } else if (e.key === 'ArrowLeft' && stateRef.current.mode === 'slider') {
         setSliderPos(p => Math.round(Math.max(0, p - 5) * 100) / 100);
-      } else if (e.key === 'ArrowRight' && mode === 'slider') {
+      } else if (e.key === 'ArrowRight' && stateRef.current.mode === 'slider') {
         setSliderPos(p => Math.round(Math.min(100, p + 5) * 100) / 100);
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, actualScale, beforeImage, afterImage, beforeLabel, afterLabel, beforeLabelPos, afterLabelPos]);
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'before'|'after'|'logo') => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
       
+      if (type === 'before' && beforeImage && beforeImage.startsWith('blob:')) URL.revokeObjectURL(beforeImage);
+      if (type === 'after' && afterImage && afterImage.startsWith('blob:')) URL.revokeObjectURL(afterImage);
+      if (type === 'logo' && logoImage && logoImage.startsWith('blob:')) URL.revokeObjectURL(logoImage);
+
       if (type === 'before' || type === 'after') {
         const img = new Image();
         img.onload = () => {
@@ -326,7 +346,7 @@ export default function App() {
       link.href = url;
       link.click();
       URL.revokeObjectURL(url);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
       alert('Video export failed. Please try again.');
     } finally {
@@ -358,9 +378,9 @@ export default function App() {
       link.href = url;
       link.click();
       URL.revokeObjectURL(url);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      alert('GIF export failed: ' + e.message);
+      alert('GIF export failed: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setIsGifExporting(false);
       setGifExportProgress(0);
@@ -581,7 +601,7 @@ export default function App() {
           <section className="p-5 border-b border-[var(--border)]">
             <span className="text-xs font-bold text-[var(--foreground)] mb-4 block tracking-wide uppercase">Layout Mode</span>
             <div className="grid grid-cols-2 gap-2.5 mb-5">
-              <ModeButton icon={<SlidersHorizontal/>} label="Slider" active={mode === 'slider'} onClick={() => setMode('slider')} />
+              <ModeButton icon={<SlidersHorizontal/>} label="Slider" active={stateRef.current.mode === 'slider'} onClick={() => setMode('slider')} />
               <ModeButton icon={<Layers/>} label="Side by Side" active={mode === 'side-by-side'} onClick={() => setMode('side-by-side')} />
               <ModeButton icon={<LayoutTemplate/>} label="Split View" active={mode === 'split'} onClick={() => setMode('split')} />
               <ModeButton icon={<SplitSquareHorizontal/>} label="Vertical Stack" active={mode === 'vertical'} onClick={() => setMode('vertical')} />
@@ -589,7 +609,7 @@ export default function App() {
             </div>
 
             {/* Mode-specific controls */}
-            {mode === 'slider' && (
+            {stateRef.current.mode === 'slider' && (
               <div className="bg-[var(--surface)] p-4 rounded-xl border border-[var(--border)] shadow-sm">
                 <SliderControl label="Divider Position" value={sliderPos} min={0} max={100} step={0.01} onChange={setSliderPos} unit="%" />
               </div>
@@ -658,7 +678,7 @@ export default function App() {
                              className="input-dark flex-1" />
                         </div>
                         <div className="flex gap-2 flex-wrap mt-2">
-                          {['rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0, 0.8)', 'rgba(255, 255, 255, 0.5)', '#000000', '#ffffff', '#18181b', '#374151', '#6366f1'].map(color => (
+                          {LABEL_COLORS.map(color => (
                             <button key={color} onClick={() => setLabelBgColor(color)} className={cn("w-6 h-6 rounded-full border border-black/10 dark:border-white/10 transition-transform hover:scale-110 shadow-sm", labelBgColor === color && "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--surface)]")} style={{ backgroundColor: color }} title={color} />
                           ))}
                         </div>
@@ -735,7 +755,7 @@ export default function App() {
                   className="input-dark flex-1 font-mono uppercase text-xs" />
               </div>
               <div className="flex gap-2.5 mt-1 px-1">
-                {['#000000', '#0f0f0f', '#18181b', '#374151', '#ffffff', '#f8fafc', '#6366f1'].map(color => (
+                {CANVAS_COLORS.map(color => (
                   <button key={color} onClick={() => setCanvasBgColor(color)} className={cn("w-6 h-6 rounded-full border border-black/10 dark:border-white/10 transition-transform hover:scale-110 shadow-sm", canvasBgColor === color && "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--background)]")} style={{ backgroundColor: color }} />
                 ))}
               </div>
@@ -785,7 +805,7 @@ export default function App() {
               </div>
             </div>
 
-            {(mode === 'slider' || mode === 'fade') && (
+            {(stateRef.current.mode === 'slider' || mode === 'fade') && (
               <div className="space-y-5 bg-[var(--background)] p-5 rounded-xl border border-[var(--border)] relative overflow-hidden group/video">
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover/video:scale-110 transition-transform duration-500">
                   <Video className="w-16 h-16" />
@@ -850,12 +870,12 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-1 bg-[var(--background)] border border-[var(--border)] rounded-lg p-1 shadow-sm">
-             <button onClick={() => setZoomLevel(z => z === 'auto' ? Math.max(10, Math.round(actualScale * 100) - 10) : Math.max(10, (z as number) - 10))} className="p-1.5 hover:bg-[var(--surface)] hover:shadow-sm rounded-md text-[var(--muted)] hover:text-[var(--foreground)] transition-all active:scale-95" title="Zoom Out (-)"><ZoomOut className="w-4 h-4" /></button>
+             <button onClick={() => setZoomLevel(z => z === 'auto' ? Math.max(10, Math.round(stateRef.current.actualScale * 100) - 10) : Math.max(10, (z as number) - 10))} className="p-1.5 hover:bg-[var(--surface)] hover:shadow-sm rounded-md text-[var(--muted)] hover:text-[var(--foreground)] transition-all active:scale-95" title="Zoom Out (-)"><ZoomOut className="w-4 h-4" /></button>
              <button onClick={() => setZoomLevel('auto')} className={cn("px-2.5 py-1 text-xs font-bold rounded-md transition-all active:scale-95 flex items-center gap-1.5", zoomLevel === 'auto' ? "bg-[var(--surface)] text-[var(--foreground)] shadow-sm border border-[var(--border)]" : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]")} title="Auto Fit (0)">
                <Monitor className="w-3.5 h-3.5" /> <span className="hidden xl:inline">Fit</span>
              </button>
-             <span className="text-xs font-mono font-medium w-14 text-center text-[var(--foreground)] select-none bg-[var(--surface)] py-1 rounded-md border border-[var(--border)] shadow-inner mx-1">{Math.round(actualScale * 100)}%</span>
-             <button onClick={() => setZoomLevel(z => z === 'auto' ? Math.min(200, Math.round(actualScale * 100) + 10) : Math.min(200, (z as number) + 10))} className="p-1.5 hover:bg-[var(--surface)] hover:shadow-sm rounded-md text-[var(--muted)] hover:text-[var(--foreground)] transition-all active:scale-95" title="Zoom In (+)"><ZoomIn className="w-4 h-4" /></button>
+             <span className="text-xs font-mono font-medium w-14 text-center text-[var(--foreground)] select-none bg-[var(--surface)] py-1 rounded-md border border-[var(--border)] shadow-inner mx-1">{Math.round(stateRef.current.actualScale * 100)}%</span>
+             <button onClick={() => setZoomLevel(z => z === 'auto' ? Math.min(200, Math.round(stateRef.current.actualScale * 100) + 10) : Math.min(200, (z as number) + 10))} className="p-1.5 hover:bg-[var(--surface)] hover:shadow-sm rounded-md text-[var(--muted)] hover:text-[var(--foreground)] transition-all active:scale-95" title="Zoom In (+)"><ZoomIn className="w-4 h-4" /></button>
           </div>
         </header>
         
@@ -896,7 +916,7 @@ export default function App() {
                 <div className="relative w-full h-full flex items-stretch min-h-[400px]">
                   
                   {/* --- SLIDER MODE --- */}
-                  {mode === 'slider' && (
+                  {stateRef.current.mode === 'slider' && (
                     <div className="relative w-full select-none flex items-stretch overflow-hidden bg-[var(--surface)]" style={{ borderRadius: `${imageRadius}px` }}>
                       {/* Base Image (After) */}
                       <div className="absolute inset-0 w-full h-full bg-[var(--background)]">
@@ -1101,287 +1121,4 @@ function ModeButton({ icon, label, active, onClick }: { icon: React.ReactNode, l
   );
 }
 
-function SliderControl({ label, value, min, max, step, onChange, unit = "" }: { label: string, value: number, min: number, max: number, step?: number, onChange: (v: number) => void, unit?: string }) {
-  return (
-    <div className="flex flex-col gap-2.5 group">
-      <div className="flex justify-between items-center">
-        <label className="text-xs font-medium text-[var(--foreground)]">{label}</label>
-        <span className="text-[11px] font-medium tabular-nums text-[var(--muted)] bg-[var(--surface)] px-2 py-0.5 rounded-md border border-[var(--border)] shadow-sm transition-colors group-hover:border-[var(--muted)]">{value}{unit}</span>
-      </div>
-      <input 
-        type="range" 
-        min={min} 
-        max={max} 
-        step={step}
-        value={value} 
-        onChange={(e) => onChange(Number(e.target.value))} 
-        className="range-slider"
-      />
-    </div>
-  );
-}
 
-function Toggle({ checked, onChange }: { checked: boolean, onChange: (v: boolean) => void }) {
-  return (
-    <button 
-      className={cn(
-        "w-9 h-5 rounded-full relative transition-colors duration-300 outline-none flex items-center px-0.5 shadow-inner",
-        checked ? "bg-[var(--color-accent)] text-white shadow-indigo-500/20" : "bg-[var(--border)] shadow-black/5"
-      )}
-      onClick={() => onChange(!checked)}
-    >
-      <div className={cn(
-        "w-4 h-4 bg-white rounded-full transition-all duration-300 shadow",
-        checked ? "translate-x-4" : "translate-x-0"
-      )} />
-    </button>
-  );
-}
-
-function GridSelector({ value, onChange }: { value: { x: string, y: string }, onChange: (v: any) => void }) {
-  const cells = [
-    { x: 'left', y: 'top' }, { x: 'center', y: 'top' }, { x: 'right', y: 'top' },
-    { x: 'left', y: 'center' }, { x: 'center', y: 'center' }, { x: 'right', y: 'center' },
-    { x: 'left', y: 'bottom' }, { x: 'center', y: 'bottom' }, { x: 'right', y: 'bottom' }
-  ];
-  return (
-    <div className="grid grid-cols-3 gap-[2px] w-full aspect-square max-w-[80px] bg-[var(--surface)] border border-[var(--border)] p-[3px] rounded-md shadow-sm">
-      {cells.map((c, i) => (
-        <button 
-          key={i} 
-          onClick={() => onChange(c)}
-          title={`${c.y} ${c.x}`}
-          className={cn(
-            "w-full h-full rounded-[3px] transition-colors", 
-            value.x === c.x && value.y === c.y ? "bg-[var(--color-accent)]" : "bg-black/5 dark:bg-white/5 hover:bg-[var(--border)]"
-          )}
-        />
-      ))}
-    </div>
-  )
-}
-
-function DraggableLabel({
-  text,
-  style,
-  pos,
-  onPosChange,
-  className,
-  opacity = 1,
-  id,
-}: {
-  text: string;
-  style: React.CSSProperties;
-  pos: { x: string; y: string };
-  onPosChange: (pos: any) => void;
-  className?: string;
-  opacity?: number;
-  id?: string;
-}) {
-  const [draggingStyle, setDraggingStyle] = useState<{ left: number; top: number } | null>(null);
-  const labelRef = useRef<HTMLDivElement>(null);
-  const [showGrid, setShowGrid] = useState(false);
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!labelRef.current) return;
-    const parent = labelRef.current.parentElement;
-    if (!parent) return;
-
-    const parentRect = parent.getBoundingClientRect();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const initialRect = labelRef.current.getBoundingClientRect();
-
-    const startOffsetX = initialRect.left - parentRect.left;
-    const startOffsetY = initialRect.top - parentRect.top;
-
-    const onPointerMove = (moveEvent: PointerEvent) => {
-      setShowGrid(true);
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
-      setDraggingStyle({
-        left: startOffsetX + dx,
-        top: startOffsetY + dy,
-      });
-    };
-
-    const onPointerUp = (upEvent: PointerEvent) => {
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerup', onPointerUp);
-      setDraggingStyle(null);
-      setShowGrid(false);
-
-      const parentRectAfter = parent.getBoundingClientRect();
-      const dropX = upEvent.clientX - parentRectAfter.left;
-      const dropY = upEvent.clientY - parentRectAfter.top;
-
-      let newX = 'center';
-      if (dropX < parentRectAfter.width / 3) newX = 'left';
-      else if (dropX > (parentRectAfter.width * 2) / 3) newX = 'right';
-
-      let newY = 'center';
-      if (dropY < parentRectAfter.height / 3) newY = 'top';
-      else if (dropY > (parentRectAfter.height * 2) / 3) newY = 'bottom';
-
-      onPosChange({ x: newX, y: newY });
-    };
-
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
-  };
-
-  const getPosStyle = () => {
-    if (draggingStyle) {
-      return {
-        left: `${draggingStyle.left}px`,
-        top: `${draggingStyle.top}px`,
-        transform: 'none',
-      };
-    }
-
-    const res: React.CSSProperties = {};
-    const paddingVal = '24px';
-    
-    if (pos.x === 'left') { res.left = paddingVal; }
-    else if (pos.x === 'right') { res.right = paddingVal; }
-    else { res.left = '50%'; res.transform = 'translateX(-50%)'; }
-
-    if (pos.y === 'top') { res.top = paddingVal; }
-    else if (pos.y === 'bottom') { res.bottom = paddingVal; }
-    else {
-      res.top = '50%';
-      res.transform = res.transform ? 'translate(-50%, -50%)' : 'translateY(-50%)';
-    }
-
-    return res;
-  };
-
-  return (
-    <>
-      <div
-        id={id}
-        ref={labelRef}
-        onPointerDown={handlePointerDown}
-        className={cn(
-          "absolute cursor-grab active:cursor-grabbing hover:scale-105 pointer-events-auto z-40 text-center",
-          draggingStyle ? "opacity-90 shadow-2xl scale-105 z-50 duration-0" : "transition-all duration-200",
-          className
-        )}
-        style={{ ...getPosStyle(), opacity }}
-      >
-        <span style={style} className="inline-block shadow-md select-none pointer-events-none">
-          {text}
-        </span>
-      </div>
-      
-      {showGrid && (
-        <div className="absolute inset-0 pointer-events-none z-30 grid grid-cols-3 grid-rows-3 border-2 border-indigo-500/30">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className="border border-indigo-500/20 bg-indigo-500/5 transition-all"></div>
-          ))}
-        </div>
-      )}
-    </>
-  );
-}
-
-function PanZoomImage({
-  src,
-  alt,
-  className,
-  style,
-  draggable = false,
-  transform,
-  setTransform,
-}: {
-  src: string;
-  alt: string;
-  className?: string;
-  style?: React.CSSProperties;
-  draggable?: boolean;
-  transform: ImageTransform;
-  setTransform: React.Dispatch<React.SetStateAction<ImageTransform>>;
-}) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const lastPos = useRef({ x: 0, y: 0 });
-
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    isDragging.current = true;
-    lastPos.current = { x: e.clientX, y: e.clientY };
-    if (containerRef.current) {
-      containerRef.current.setPointerCapture(e.pointerId);
-      containerRef.current.style.cursor = 'grabbing';
-    }
-    e.preventDefault();
-  }, []);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDragging.current) return;
-    const dx = e.clientX - lastPos.current.x;
-    const dy = e.clientY - lastPos.current.y;
-    lastPos.current = { x: e.clientX, y: e.clientY };
-
-    setTransform(prev => ({
-      ...prev,
-      x: prev.x + dx,
-      y: prev.y + dy
-    }));
-  }, [setTransform]);
-
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    isDragging.current = false;
-    if (containerRef.current) {
-      containerRef.current.releasePointerCapture(e.pointerId);
-      containerRef.current.style.cursor = 'grab';
-    }
-  }, []);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const zoomSensitivity = 0.001;
-    const delta = -e.deltaY * zoomSensitivity;
-    setTransform(prev => {
-      const newScale = Math.min(Math.max(0.1, prev.scale + delta), 10);
-      return { ...prev, scale: newScale };
-    });
-  }, [setTransform]);
-
-  const handleDoubleClick = useCallback(() => {
-    setTransform({ x: 0, y: 0, scale: 1 });
-  }, [setTransform]);
-
-  const transformStyle: React.CSSProperties = {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`,
-    transformOrigin: 'center center',
-    transition: isDragging.current ? 'none' : 'transform 0.1s ease-out',
-    cursor: isDragging.current ? 'grabbing' : 'grab',
-    width: '100%',
-    height: '100%',
-    display: 'block'
-  };
-
-  return (
-    <div
-      ref={containerRef}
-      className={cn("absolute inset-0 w-full h-full overflow-hidden pointer-events-auto")}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      onWheel={handleWheel}
-      onDoubleClick={handleDoubleClick}
-      style={{ touchAction: 'none' }}
-    >
-      <img
-        src={src}
-        alt={alt}
-        draggable={draggable}
-        className={cn("w-full h-full block pointer-events-none", className)}
-        style={{ ...style, ...transformStyle }}
-      />
-    </div>
-  );
-}

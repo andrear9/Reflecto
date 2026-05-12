@@ -24,14 +24,14 @@ export const getPositionForFrame = (i: number, fps: number, cycleTime: number, s
 };
 
 export const applyDOMStateFade = (container: HTMLElement, p: number) => {
-  const fade = container.querySelector('#capture-fade') as HTMLElement;
+  const fade = container.querySelector('#capture-fade') as HTMLElement | null;
   if (fade) {
     fade.style.transition = 'none';
     fade.style.opacity = (p).toString();
   }
 
-  const beforeLabel = container.querySelector('#capture-before-label') as HTMLElement;
-  const afterLabel = container.querySelector('#capture-after-label') as HTMLElement;
+  const beforeLabel = container.querySelector('#capture-before-label') as HTMLElement | null;
+  const afterLabel = container.querySelector('#capture-after-label') as HTMLElement | null;
   if (beforeLabel) {
     beforeLabel.style.transition = 'none';
     beforeLabel.style.opacity = (1 - p).toString();
@@ -44,14 +44,14 @@ export const applyDOMStateFade = (container: HTMLElement, p: number) => {
 
 export const applyDOMStateSlider = (container: HTMLElement, p: number) => {
   const pct = p * 100;
-  const clip = container.querySelector('#capture-clip-path') as HTMLElement;
+  const clip = container.querySelector('#capture-clip-path') as HTMLElement | null;
   if (clip) {
     clip.style.transition = 'none';
     clip.style.clipPath = `polygon(0 0, ${pct}% 0, ${pct}% 100%, 0 100%)`;
   }
 
-  const beforeLabel = container.querySelector('#capture-before-label') as HTMLElement;
-  const afterLabel = container.querySelector('#capture-after-label') as HTMLElement;
+  const beforeLabel = container.querySelector('#capture-before-label') as HTMLElement | null;
+  const afterLabel = container.querySelector('#capture-after-label') as HTMLElement | null;
   if (beforeLabel) {
     beforeLabel.style.transition = 'none';
     beforeLabel.style.opacity = p > 0.15 ? '1' : '0';
