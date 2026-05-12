@@ -6,6 +6,7 @@
 
   <p>
     <a href="https://github.com/andrear9/reflecto/releases"><img src="https://img.shields.io/github/v/release/andrear9/reflecto?style=flat-square&color=6366f1" alt="Release"></a>
+    <a href="https://github.com/andrear9/Reflecto/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/andrear9/reflecto/ci.yml?style=flat-square&color=6366f1&label=CI" alt="CI"></a>
     <a href="https://github.com/andrear9/reflecto/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&color=6366f1" alt="License"></a>
     <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-blue.svg?style=flat-square&logo=react&color=6366f1" alt="React"></a>
     <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-6-blue.svg?style=flat-square&logo=vite&color=6366f1" alt="Vite"></a>
