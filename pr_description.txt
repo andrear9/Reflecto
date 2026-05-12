@@ -1,8 +1,0 @@
-Title: ⚡ Optimize GIF Export by generating a Global Palette
-Description:
-💡 **What:** Refactored `src/lib/gifExport.ts` to pre-calculate a single global palette for GIF encoding, combining the "Before" and "After" canvas frames into one temporary canvas for color quantization.
-🎯 **Why:** Previously, `quantize` was called per-frame inside a tight rendering loop. `quantize` is a relatively expensive operation (calculating a color palette based on pixel distribution). Moving this outside the loop drastically improves GIF export speed, as palette extraction only happens once for the entire animation.
-📊 **Measured Improvement:** In a local benchmark simulation involving 30 frames at 800x600 resolution:
-- **Baseline (Per-Frame Palette):** ~270ms
-- **Optimized (Global Palette):** ~89ms
-- **Improvement:** Roughly ~3x faster processing overhead by removing repeated quantization. Overall time savings scale linearly with longer animations or higher framerates.
