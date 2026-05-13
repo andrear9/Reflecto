@@ -25,7 +25,7 @@ export async function exportVideoTask(
     height = Math.floor((height * scale) / 2) * 2;
   }
 
-  const fps = 30;
+  const fps = 60; // Upgraded to standard 60fps for smoothness
   const duration = Math.max(1, timing.duration || 4);
   const totalFrames = fps * duration;
   
@@ -51,7 +51,7 @@ export async function exportVideoTask(
     codec: 'avc1.4d0033', // Main profile, Level 5.1
     width,
     height,
-    bitrate: 4_000_000, // 4Mbps
+    bitrate: 8_000_000, // 8Mbps
     framerate: fps
   });
 
@@ -194,23 +194,33 @@ export async function exportVideoTask(
   await encoder.flush();
   muxer.finalize();
 
+  // Cleanup large canvas memory buffers
+  if (beforeCanvas) {
+    beforeCanvas.width = 0;
+    beforeCanvas.height = 0;
+  }
+  if (afterCanvas) {
+    afterCanvas.width = 0;
+    afterCanvas.height = 0;
+  }
+
   // Reset original DOM state safely
   if (mode === 'slider') {
-    const clip = container.querySelector('#capture-clip-path') as HTMLElement;
+    const clip = container.querySelector('#capture-clip-path') as HTMLElement | null;
     if (clip) clip.style.transition = '';
     
     applyDOMStateSlider(container, initialPcts.sliderPos / 100);
-    const handle = container.querySelector('#capture-slider-handle') as HTMLElement;
+    const handle = container.querySelector('#capture-slider-handle') as HTMLElement | null;
     if (handle) handle.style.left = `${initialPcts.sliderPos}%`;
   } else if (mode === 'fade') {
-    const fade = container.querySelector('#capture-fade') as HTMLElement;
+    const fade = container.querySelector('#capture-fade') as HTMLElement | null;
     if (fade) fade.style.transition = '';
     
     applyDOMStateFade(container, initialPcts.fadeOpacity / 100);
   }
   
-  const beforeLabel = container.querySelector('#capture-before-label') as HTMLElement;
-  const afterLabel = container.querySelector('#capture-after-label') as HTMLElement;
+  const beforeLabel = container.querySelector('#capture-before-label') as HTMLElement | null;
+  const afterLabel = container.querySelector('#capture-after-label') as HTMLElement | null;
   if (beforeLabel) beforeLabel.style.transition = '';
   if (afterLabel) afterLabel.style.transition = '';
 
