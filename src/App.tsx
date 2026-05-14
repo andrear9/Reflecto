@@ -253,9 +253,9 @@ export default function App() {
         setZoomLevel(z => z === 'auto' ? Math.min(200, Math.round(stateRef.current.actualScale * 100) + 10) : Math.min(200, (z as number) + 10));
       } else if (e.key === '0') {
         setZoomLevel('auto');
-      } else if (e.key === 'ArrowLeft' && stateRef.current.mode === 'slider') {
+      } else if (e.key === 'ArrowLeft' && state.mode === 'slider') {
         setSliderPos(p => Math.round(Math.max(0, p - 5) * 100) / 100);
-      } else if (e.key === 'ArrowRight' && stateRef.current.mode === 'slider') {
+      } else if (e.key === 'ArrowRight' && state.mode === 'slider') {
         setSliderPos(p => Math.round(Math.min(100, p + 5) * 100) / 100);
       }
     };
@@ -601,7 +601,7 @@ export default function App() {
           <section className="p-5 border-b border-[var(--border)]">
             <span className="text-xs font-bold text-[var(--foreground)] mb-4 block tracking-wide uppercase">Layout Mode</span>
             <div className="grid grid-cols-2 gap-2.5 mb-5">
-              <ModeButton icon={<SlidersHorizontal/>} label="Slider" active={stateRef.current.mode === 'slider'} onClick={() => setMode('slider')} />
+              <ModeButton icon={<SlidersHorizontal/>} label="Slider" active={mode === 'slider'} onClick={() => setMode('slider')} />
               <ModeButton icon={<Layers/>} label="Side by Side" active={mode === 'side-by-side'} onClick={() => setMode('side-by-side')} />
               <ModeButton icon={<LayoutTemplate/>} label="Split View" active={mode === 'split'} onClick={() => setMode('split')} />
               <ModeButton icon={<SplitSquareHorizontal/>} label="Vertical Stack" active={mode === 'vertical'} onClick={() => setMode('vertical')} />
@@ -609,7 +609,7 @@ export default function App() {
             </div>
 
             {/* Mode-specific controls */}
-            {stateRef.current.mode === 'slider' && (
+            {mode === 'slider' && (
               <div className="bg-[var(--surface)] p-4 rounded-xl border border-[var(--border)] shadow-sm">
                 <SliderControl label="Divider Position" value={sliderPos} min={0} max={100} step={0.01} onChange={setSliderPos} unit="%" />
               </div>
@@ -805,7 +805,7 @@ export default function App() {
               </div>
             </div>
 
-            {(stateRef.current.mode === 'slider' || mode === 'fade') && (
+            {(mode === 'slider' || mode === 'fade') && (
               <div className="space-y-5 bg-[var(--background)] p-5 rounded-xl border border-[var(--border)] relative overflow-hidden group/video">
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover/video:scale-110 transition-transform duration-500">
                   <Video className="w-16 h-16" />
@@ -916,11 +916,11 @@ export default function App() {
                 <div className="relative w-full h-full flex items-stretch min-h-[400px]">
                   
                   {/* --- SLIDER MODE --- */}
-                  {stateRef.current.mode === 'slider' && (
+                  {mode === 'slider' && (
                     <div className="relative w-full select-none flex items-stretch overflow-hidden bg-[var(--surface)]" style={{ borderRadius: `${imageRadius}px` }}>
                       {/* Base Image (After) */}
                       <div className="absolute inset-0 w-full h-full bg-[var(--background)]">
-                        {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block", objectFit === 'contain' ? "object-contain" : "object-cover")} draggable={false} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
+                        {afterImage && <PanZoomImage src={afterImage} alt="After" objectFitMode={objectFit} draggable={false} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                         {showLabels && afterImage && (
                           <DraggableLabel text={afterLabel} style={labelStyle} pos={afterLabelPos} onPosChange={setAfterLabelPos} opacity={sliderPos < 85 ? 1 : 0} />
                         )}
@@ -928,7 +928,7 @@ export default function App() {
                       
                       {/* Better clipping via clip-path */}
                       <div id="capture-clip-path" className="absolute inset-0 pointer-events-none w-full h-full bg-[var(--background)]" style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}>
-                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} draggable={false} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
+                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className="pointer-events-auto" objectFitMode={objectFit} draggable={false} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                          {showLabels && beforeImage && (
                            <DraggableLabel id="capture-before-label" text={beforeLabel} style={labelStyle} pos={beforeLabelPos} onPosChange={setBeforeLabelPos} opacity={sliderPos > 15 ? 1 : 0} />
                          )}
@@ -961,13 +961,13 @@ export default function App() {
                   {mode === 'side-by-side' && (
                     <div className="flex w-full h-full min-h-[400px]" style={{ gap: `${innerSpacing}px` }}>
                       <div className="w-1/2 relative bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
-                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
+                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className="pointer-events-auto" objectFitMode={objectFit} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                          {showLabels && beforeImage && (
                            <DraggableLabel text={beforeLabel} style={labelStyle} pos={beforeLabelPos} onPosChange={setBeforeLabelPos} />
                          )}
                       </div>
                       <div className="w-1/2 relative bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
-                         {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
+                         {afterImage && <PanZoomImage src={afterImage} alt="After" className="pointer-events-auto" objectFitMode={objectFit} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                          {showLabels && afterImage && (
                            <DraggableLabel text={afterLabel} style={labelStyle} pos={afterLabelPos} onPosChange={setAfterLabelPos} />
                          )}
@@ -979,13 +979,13 @@ export default function App() {
                   {mode === 'vertical' && (
                     <div className="flex flex-col w-full min-h-[600px]" style={{ gap: `${innerSpacing}px` }}>
                       <div className="h-1/2 relative bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
-                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
+                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className="pointer-events-auto" objectFitMode={objectFit} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                          {showLabels && beforeImage && (
                            <DraggableLabel text={beforeLabel} style={labelStyle} pos={beforeLabelPos} onPosChange={setBeforeLabelPos} />
                          )}
                       </div>
                       <div className="h-1/2 relative bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
-                         {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
+                         {afterImage && <PanZoomImage src={afterImage} alt="After" className="pointer-events-auto" objectFitMode={objectFit} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                          {showLabels && afterImage && (
                            <DraggableLabel text={afterLabel} style={labelStyle} pos={afterLabelPos} onPosChange={setAfterLabelPos} />
                          )}
@@ -997,12 +997,12 @@ export default function App() {
                   {mode === 'split' && (
                      <div className="relative w-full h-full select-none bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
                         <div className="absolute inset-0 w-full h-full">
-                          {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
+                          {afterImage && <PanZoomImage src={afterImage} alt="After" className="pointer-events-auto" objectFitMode={objectFit} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                         </div>
                         <div className="absolute inset-0 w-full h-full bg-[var(--surface)] pointer-events-none" style={{ 
                            clipPath: `polygon(0 0, ${50 + splitAngle}% 0, ${50 - splitAngle}% 100%, 0 100%)`
                         }}>
-                          {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
+                          {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className="pointer-events-auto" objectFitMode={objectFit} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                         </div>
                         {/* Divider Line */}
                         <div className="absolute inset-0 pointer-events-none w-full h-full" style={{ overflow: 'hidden' }}>
@@ -1023,10 +1023,10 @@ export default function App() {
                   {mode === 'fade' && (
                     <div className="relative w-full h-full bg-[var(--surface)] overflow-hidden" style={{ borderRadius: `${imageRadius}px` }}>
                       <div className="absolute inset-0 w-full h-full pointer-events-none">
-                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
+                         {beforeImage && <PanZoomImage src={beforeImage} alt="Before" className="pointer-events-auto" objectFitMode={objectFit} style={beforeFilterStyle} transform={beforeTransform} setTransform={setBeforeTransform} />}
                       </div>
                       <div id="capture-fade" className="absolute inset-0 w-full h-full transition-opacity duration-75 pointer-events-none" style={{ opacity: fadeOpacity / 100 }}>
-                         {afterImage && <PanZoomImage src={afterImage} alt="After" className={cn("w-full h-full block pointer-events-auto", objectFit === 'contain' ? "object-contain" : "object-cover")} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
+                         {afterImage && <PanZoomImage src={afterImage} alt="After" className="pointer-events-auto" objectFitMode={objectFit} style={afterFilterStyle} transform={afterTransform} setTransform={setAfterTransform} />}
                       </div>
                       {showLabels && beforeImage && (
                          <DraggableLabel id="capture-before-label" text={beforeLabel} style={labelStyle} pos={beforeLabelPos} onPosChange={setBeforeLabelPos} opacity={1 - fadeOpacity/100} />

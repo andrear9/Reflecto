@@ -11,6 +11,7 @@ export const PanZoomImage = memo(function PanZoomImage({
   draggable = false,
   transform,
   setTransform,
+  objectFitMode = 'cover',
 }: {
   src: string;
   alt: string;
@@ -19,6 +20,7 @@ export const PanZoomImage = memo(function PanZoomImage({
   draggable?: boolean;
   transform: ImageTransform;
   setTransform: React.Dispatch<React.SetStateAction<ImageTransform>>;
+  objectFitMode?: 'cover' | 'contain';
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -70,7 +72,7 @@ export const PanZoomImage = memo(function PanZoomImage({
   }, [setTransform]);
 
   const transformStyle: React.CSSProperties = {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`,
+    transform: `translate(-50%, -50%) translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`,
     transformOrigin: 'center center',
     transition: isDragging.current ? 'none' : 'transform 0.1s ease-out',
     cursor: isDragging.current ? 'grabbing' : 'grab',
@@ -93,12 +95,24 @@ export const PanZoomImage = memo(function PanZoomImage({
       onDoubleClick={handleDoubleClick}
       style={{ touchAction: 'none' }}
     >
-      <img
+            <img
         src={src}
         alt={alt}
         draggable={draggable}
-        className={cn("w-full h-full block pointer-events-none", className)}
-        style={{ ...style, ...transformStyle }}
+        className={cn("block pointer-events-none absolute", className)}
+        style={{
+          ...style,
+          ...transformStyle,
+          top: '50%',
+          left: '50%',
+          width: 'auto',
+          height: 'auto',
+          minWidth: objectFitMode === 'cover' ? '100%' : undefined,
+          minHeight: objectFitMode === 'cover' ? '100%' : undefined,
+          maxWidth: objectFitMode === 'contain' ? '100%' : 'none',
+          maxHeight: objectFitMode === 'contain' ? '100%' : 'none',
+          objectFit: 'fill' // overrides any external object-fit classes that cause clipping
+        }}
       />
     </div>
   );
